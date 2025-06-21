@@ -1,4 +1,3 @@
-
 <template>
   <div class="min-h-screen bg-gray-50">
     <div class="container mx-auto p-4">
@@ -6,7 +5,7 @@
       <div class="mb-6">
         <nav class="flex items-center space-x-4 mb-4">
           <NuxtLink
-              to="/blogpostsui"
+              to="/blogpostui/blogpostsui"
               class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
           >
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -132,7 +131,7 @@
             <!-- Action buttons -->
             <div class="flex space-x-2">
               <NuxtLink
-                  :to="`/blogpostui/${post.slug}/edit`"
+                  :to="`/blogpostui/edit/${post.slug}`"
                   class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
               >
                 Редагувати
@@ -158,7 +157,7 @@
         <h3 class="text-xl font-medium text-gray-900 mb-2">Пост не знайдено</h3>
         <p class="text-gray-600 mb-6">Можливо, пост було видалено або URL неправильний</p>
         <NuxtLink
-            to="/blogpostsui"
+            to="/blogpostui/blogpostsui"
             class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           Повернутися до списку
@@ -280,7 +279,7 @@ const deletePost = async () => {
     })
 
     alert('Пост успішно видалено!')
-    router.push('/blogpostsui')
+    router.push('/blogpostui/blogpostsui')
   } catch (err: any) {
     console.error('Помилка видалення:', err)
     alert(`Помилка видалення посту: ${err.message}`)

@@ -4,7 +4,7 @@ import type { PaginatedResponse, BlogPost, BlogCategory } from "~/types"
 
 export const useApi = () => {
     const config = useRuntimeConfig()
-    const baseURL = config.public.apiBase || "http://localhost/api"
+    const baseURL = config.public.apiBase
 
     const api = $fetch.create({
         baseURL,
@@ -24,7 +24,9 @@ export const useApi = () => {
         deletePost: (id: number) => api(`/blog/posts/${id}`, { method: "DELETE" }),
 
         // Blog Categories
-        getCategories: () => api<BlogCategory[]>("/blog/categories"),
+        getCategories: () => api<BlogCategory[]>("/blog/categories-all"), // Всі категорії без пагінації
+        getCategoriesPaginated: (page = 1, perPage = 10) =>
+            api<PaginatedResponse<BlogCategory>>(`/blog/categories?page=${page}&per_page=${perPage}`), // З пагінацією
         getCategory: (slug: string) => api<BlogCategory>(`/blog/categories/${slug}`),
         createCategory: (data: Partial<BlogCategory>) =>
             api<BlogCategory>("/blog/categories", { method: "POST", body: data }),

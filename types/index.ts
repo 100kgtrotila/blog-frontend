@@ -17,7 +17,6 @@ export interface BlogPost {
     slug: string
     excerpt?: string
     content_raw: string
-    category_id: number
     is_published: boolean
     published_at?: string
     user: {
@@ -29,6 +28,7 @@ export interface BlogPost {
         title: string
         slug: string
     }
+    category_id: number
     created_at: string
     updated_at: string
 }
@@ -49,4 +49,10 @@ export interface PaginatedResponse<T> {
         prev?: string
         next?: string
     }
+}
+
+export interface ApiError {
+    message: string
+    error?: string
+    errors?: Record<string, string[]>
 }
