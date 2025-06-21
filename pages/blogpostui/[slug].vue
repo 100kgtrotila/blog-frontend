@@ -1,5 +1,4 @@
 
-
 <template>
   <div class="min-h-screen bg-gray-50">
     <div class="container mx-auto p-4">
@@ -7,7 +6,7 @@
       <div class="mb-6">
         <nav class="flex items-center space-x-4 mb-4">
           <NuxtLink
-              to="/blogpostui"
+              to="/blogpostsui"
               class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
           >
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -159,7 +158,7 @@
         <h3 class="text-xl font-medium text-gray-900 mb-2">Пост не знайдено</h3>
         <p class="text-gray-600 mb-6">Можливо, пост було видалено або URL неправильний</p>
         <NuxtLink
-            to="/blogpostui"
+            to="/blogpostsui"
             class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           Повернутися до списку
@@ -172,7 +171,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { $fetch } from 'ofetch'
-import { useHead } from '#app'
 
 interface User {
   id: number
@@ -282,7 +280,7 @@ const deletePost = async () => {
     })
 
     alert('Пост успішно видалено!')
-    router.push('/blogpostui')
+    router.push('/blogpostsui')
   } catch (err: any) {
     console.error('Помилка видалення:', err)
     alert(`Помилка видалення посту: ${err.message}`)

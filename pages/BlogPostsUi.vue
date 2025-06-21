@@ -3,7 +3,7 @@
     <div class="flex justify-center">
       <div class="w-full">
         <nav class="navbar bg-gray-100 p-4 mb-4 rounded">
-          <NuxtLink to="/admin/blog/posts/create" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+          <NuxtLink to="/blogpostui/create" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
             Додати
           </NuxtLink>
         </nav>
@@ -65,7 +65,6 @@
 <script setup lang="ts">
 import { ref, onMounted, h } from 'vue'
 import { $fetch } from 'ofetch'
-import { useHead } from '#app'
 
 interface User {
   name: string
@@ -138,7 +137,7 @@ const columns = [
     accessorKey: 'title',
     header: 'Заголовок',
     cell: ({ row }: any) => h('a', {
-      href: `/blog/${row.original.slug}`,
+      href: `/blogpostui/${row.original.slug}`,
       class: 'text-blue-600 hover:text-blue-800 hover:underline font-medium'
     }, row.original.title)
   },
@@ -200,13 +199,6 @@ const changePageSize = () => {
   currentPage.value = 1
   loadPosts(1, perPage.value)
 }
-
-useHead({
-  title: 'Управління постами блогу',
-  meta: [
-    { name: 'description', content: 'Адміністративна панель для управління постами блогу' }
-  ]
-})
 
 const onMountedHook = () => {
   loadPosts()
