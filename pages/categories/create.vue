@@ -1,212 +1,214 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <header class="bg-white shadow">
-      <div class="max-w-7xl mx-auto py-6 px-4">
-        <div class="flex items-center space-x-4">
-          <NuxtLink
-              to="/categories"
-              class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+  <div class="container mx-auto p-6">
+    <div class="flex items-center gap-4 mb-8">
+      <UButton
+          to="/categories"
+          variant="ghost"
+          icon="i-heroicons-arrow-left"
+      >
+        Назад
+      </UButton>
+      <h1 class="text-3xl font-bold">Створити нову категорію</h1>
+    </div>
+
+    <!-- Validation Error Alert -->
+    <UAlert
+        v-if="validationError"
+        color="red"
+        variant="soft"
+        :title="validationError"
+        class="mb-6"
+        @close="validationError = null"
+    />
+
+    <UCard class="max-w-2xl mx-auto">
+      <form @submit.prevent="handleSubmit" class="space-y-8">
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">
+            Назва *
+          </label>
+          <UInput
+              v-model="formData.title"
+              placeholder="Введіть назву категорії"
+              @input="generateSlug"
+              class="border-2 border-gray-200 focus:border-blue-500 rounded-lg px-4 py-3"
+              required
+          />
+        </div>
+
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">
+            Slug
+          </label>
+          <UInput
+              v-model="formData.slug"
+              placeholder="category-slug (автоматично згенерується)"
+              class="border-2 border-gray-200 focus:border-blue-500 rounded-lg px-4 py-3"
+          />
+          <p class="text-sm text-gray-500">Залиште порожнім для автоматичної генерації</p>
+        </div>
+
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">
+            Батьківська категорія
+          </label>
+          <select
+              v-model="formData.parent_id"
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              :disabled="loadingCategories"
           >
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-            </svg>
-            Назад
-          </NuxtLink>
-          <h1 class="text-3xl font-bold text-gray-900">Створити категорію</h1>
-        </div>
-      </div>
-    </header>
-
-    <main class="max-w-4xl mx-auto py-6 px-4">
-      <div class="bg-white rounded-lg shadow-lg p-6">
-        <!-- Debug info -->
-        <div v-if="loadingCategories" class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
-          <p class="text-blue-700">Завантаження категорій...</p>
+            <option value="">Без батьківської категорії</option>
+            <option
+                v-for="category in categories"
+                :key="category.id"
+                :value="category.id"
+            >
+              {{ category.title }}
+            </option>
+          </select>
+          <div v-if="loadingCategories" class="text-sm text-gray-500 mt-2">
+            Завантаження категорій...
+          </div>
         </div>
 
-        <div v-if="categories.length > 0" class="mb-4 p-3 bg-green-50 border border-green-200 rounded">
-          <p class="text-green-700">Завантажено {{ categories.length }} категорій</p>
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">
+            Опис
+          </label>
+          <UTextarea
+              v-model="formData.description"
+              placeholder="Опис категорії"
+              :rows="4"
+              class="border-2 border-gray-200 focus:border-blue-500 rounded-lg px-4 py-3"
+          />
         </div>
 
-        <form @submit.prevent="handleSubmit" class="space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
-                Назва категорії *
-              </label>
-              <input
-                  id="title"
-                  v-model="formData.title"
-                  type="text"
-                  required
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Введіть назву категорії"
-                  @input="generateSlug"
-              />
-              <p v-if="errors.title" class="mt-1 text-sm text-red-600">{{ errors.title }}</p>
-            </div>
-
-            <div>
-              <label for="slug" class="block text-sm font-medium text-gray-700 mb-2">
-                Slug *
-              </label>
-              <input
-                  id="slug"
-                  v-model="formData.slug"
-                  type="text"
-                  required
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="category-slug"
-              />
-              <p v-if="errors.slug" class="mt-1 text-sm text-red-600">{{ errors.slug }}</p>
-            </div>
-          </div>
-
-          <div>
-            <label for="parent_id" class="block text-sm font-medium text-gray-700 mb-2">
-              Батьківська категорія
-            </label>
-            <select
-                id="parent_id"
-                v-model="formData.parent_id"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            >
-              <option value="">Без батьківської категорії</option>
-              <option v-for="category in categories" :key="category.id" :value="category.id">
-                {{ category.title }}
-              </option>
-            </select>
-            <p class="mt-1 text-sm text-gray-500">
-              Доступно {{ categories.length }} категорій для вибору
-            </p>
-          </div>
-
-          <div>
-            <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
-              Опис
-            </label>
-            <textarea
-                id="description"
-                v-model="formData.description"
-                rows="3"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="Опис категорії"
-            ></textarea>
-            <p v-if="errors.description" class="mt-1 text-sm text-red-600">{{ errors.description }}</p>
-          </div>
-
-          <div class="flex justify-end space-x-4">
-            <NuxtLink
-                to="/categories"
-                class="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
-            >
-              Скасувати
-            </NuxtLink>
-            <button
-                type="submit"
-                :disabled="submitting"
-                class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {{ submitting ? 'Створення...' : 'Створити категорію' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </main>
+        <div class="flex justify-end gap-4 pt-6">
+          <UButton
+              to="/categories"
+              variant="ghost"
+              size="lg"
+              type="button"
+          >
+            Скасувати
+          </UButton>
+          <UButton
+              type="submit"
+              :loading="submitting"
+              :disabled="submitting"
+              size="lg"
+          >
+            Створити категорію
+          </UButton>
+        </div>
+      </form>
+    </UCard>
   </div>
 </template>
 
 <script setup lang="ts">
 import { reactive, ref, onMounted } from 'vue'
-import { categorySchema, type CategoryFormData } from '~/schemas'
-import type { BlogCategory } from '~/types'
+
+interface BlogCategory {
+  id: number
+  title: string
+  slug: string
+}
 
 const router = useRouter()
 
-const formData = reactive<CategoryFormData>({
+const formData = reactive({
   title: '',
   slug: '',
-  description: '',
-  parent_id: null
+  parent_id: '',
+  description: ''
 })
 
 const categories = ref<BlogCategory[]>([])
 const submitting = ref(false)
 const loadingCategories = ref(false)
-const errors = ref<Record<string, string>>({})
+const validationError = ref<string | null>(null)
 
 const generateSlug = () => {
   if (formData.title && !formData.slug) {
     formData.slug = formData.title
         .toLowerCase()
-        .replace(/[^a-z0-9а-я\s-]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
         .replace(/\s+/g, '-')
         .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '')
-  }
-}
-
-const validateForm = () => {
-  try {
-    categorySchema.parse(formData)
-    errors.value = {}
-    return true
-  } catch (error: any) {
-    errors.value = {}
-    if (error.errors) {
-      error.errors.forEach((err: any) => {
-        errors.value[err.path[0]] = err.message
-      })
-    }
-    return false
-  }
-}
-
-const handleSubmit = async () => {
-  if (!validateForm()) return
-
-  submitting.value = true
-
-  try {
-    const response = await $fetch('http://localhost/api/blog/categories', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: formData
-    })
-
-    alert('Категорію створено успішно!')
-    router.push(`/categories/${response.slug}`)
-  } catch (error: any) {
-    console.error('Помилка створення категорії:', error)
-    alert(`Помилка створення категорії: ${error.message}`)
-  } finally {
-    submitting.value = false
+        .trim()
   }
 }
 
 const loadCategories = async () => {
   loadingCategories.value = true
   try {
-    console.log('Завантаження категорій...')
+    const response = await $fetch<BlogCategory[]>('http://localhost/api/blog/categories-all')
+    categories.value = response
+    console.log('Завантажені категорії:', response)
+  } catch (error) {
+    console.error('Помилка завантаження категорій:', error)
+  } finally {
+    loadingCategories.value = false
+  }
+}
 
-    const response = await $fetch<BlogCategory[]>('http://localhost/api/blog/categories-all', {
-      method: 'GET',
+const handleSubmit = async () => {
+  if (submitting.value) return
+
+  // Basic validation
+  if (!formData.title?.trim()) {
+    validationError.value = 'Назва є обов\'язковим полем'
+    return
+  }
+
+  submitting.value = true
+  validationError.value = null
+
+  try {
+    const submitData = {
+      title: formData.title.trim(),
+      slug: formData.slug?.trim() || null, // Відправляємо null якщо порожній
+      parent_id: formData.parent_id ? Number(formData.parent_id) : null,
+      description: formData.description?.trim() || null
+    }
+
+    console.log('Відправляємо дані:', submitData)
+
+    const response = await $fetch('http://localhost/api/blog/categories', {
+      method: 'POST',
+      body: submitData,
       headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       }
     })
 
-    console.log('Категорії завантажено:', response)
-    categories.value = response
-  } catch (error) {
-    console.error('Помилка завантаження категорій:', error)
-    alert('Помилка завантаження категорій')
+    console.log('Відповідь сервера:', response)
+
+    await router.push('/categories')
+  } catch (err: any) {
+    console.error('Повна помилка:', err)
+    console.error('Статус:', err.status)
+    console.error('Дані помилки:', err.data)
+
+    if (err.status === 422) {
+      if (err.data?.errors) {
+        // Laravel validation errors
+        const errors = Object.values(err.data.errors).flat()
+        validationError.value = errors.join(', ')
+      } else if (err.data?.error) {
+        validationError.value = err.data.error
+      } else if (err.data?.message) {
+        validationError.value = err.data.message
+      } else {
+        validationError.value = 'Помилка валідації даних. Перевірте консоль для деталей.'
+      }
+    } else {
+      validationError.value = `Помилка створення: ${err.message || 'Невідома помилка'}`
+    }
   } finally {
-    loadingCategories.value = false
+    submitting.value = false
   }
 }
 
@@ -215,6 +217,6 @@ onMounted(() => {
 })
 
 useHead({
-  title: 'Створити категорію'
+  title: 'Створити нову категорію'
 })
 </script>

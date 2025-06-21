@@ -1,3 +1,4 @@
+
 <template>
   <div class="min-h-screen bg-gray-50">
     <div class="container mx-auto p-4">
@@ -190,7 +191,7 @@ interface BlogPost {
   content_raw: string
   is_published: boolean
   published_at: string
-  created_at: string
+  created_at: stringі
   updated_at: string
   user: User
   category: Category

@@ -1,170 +1,163 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <header class="bg-white shadow">
-      <div class="max-w-7xl mx-auto py-6 px-4">
-        <div class="flex items-center space-x-4">
-          <NuxtLink
-              to="/blogpostui"
-              class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-          >
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-            </svg>
-            Назад
-          </NuxtLink>
-          <h1 class="text-3xl font-bold text-gray-900">Створити новий пост</h1>
+  <div class="container mx-auto p-6">
+    <div class="flex items-center gap-4 mb-6">
+      <UButton
+          to="/blogpostui"
+          variant="ghost"
+          icon="i-heroicons-arrow-left"
+      >
+        Назад
+      </UButton>
+      <h1 class="text-3xl font-bold">Створити новий пост</h1>
+    </div>
+
+    <UCard>
+      <form @submit.prevent="onSubmit" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Заголовок *
+            </label>
+            <UInput
+                v-model="state.title"
+                placeholder="Введіть заголовок посту"
+                @input="generateSlug"
+                required
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Slug *
+            </label>
+            <UInput
+                v-model="state.slug"
+                placeholder="post-slug"
+                required
+            />
+          </div>
         </div>
-      </div>
-    </header>
 
-    <main class="max-w-4xl mx-auto py-6 px-4">
-      <div class="bg-white rounded-lg shadow-lg p-6">
-        <!-- Debug info -->
-        <div v-if="loadingCategories" class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
-          <p class="text-blue-700">Завантаження категорій...</p>
-        </div>
-
-        <div v-if="categories.length > 0" class="mb-4 p-3 bg-green-50 border border-green-200 rounded">
-          <p class="text-green-700">Завантажено {{ categories.length }} категорій</p>
-        </div>
-
-        <form @submit.prevent="handleSubmit" class="space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
-                Заголовок *
-              </label>
-              <input
-                  id="title"
-                  v-model="formData.title"
-                  type="text"
-                  required
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Введіть заголовок посту"
-                  @input="generateSlug"
-              />
-              <p v-if="errors.title" class="mt-1 text-sm text-red-600">{{ errors.title }}</p>
-            </div>
-
-            <div>
-              <label for="slug" class="block text-sm font-medium text-gray-700 mb-2">
-                Slug *
-              </label>
-              <input
-                  id="slug"
-                  v-model="formData.slug"
-                  type="text"
-                  required
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="post-slug"
-              />
-              <p v-if="errors.slug" class="mt-1 text-sm text-red-600">{{ errors.slug }}</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Категорія *
+            </label>
+            <select
+                v-model="state.category_id"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                required
+                :disabled="loadingCategories"
+            >
+              <option value="" disabled>Оберіть категорію</option>
+              <option
+                  v-for="category in categories"
+                  :key="category.id"
+                  :value="category.id"
+              >
+                {{ category.title }}
+              </option>
+            </select>
+            <div v-if="loadingCategories" class="text-sm text-gray-500 mt-1">
+              Завантаження категорій...
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label for="category_id" class="block text-sm font-medium text-gray-700 mb-2">
-                Категорія *
-              </label>
-              <select
-                  id="category_id"
-                  v-model="formData.category_id"
-                  required
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Оберіть категорію</option>
-                <option v-for="category in categories" :key="category.id" :value="category.id">
-                  {{ category.title }}
-                </option>
-              </select>
-              <p v-if="errors.category_id" class="mt-1 text-sm text-red-600">{{ errors.category_id }}</p>
-              <p class="mt-1 text-sm text-gray-500">
-                Доступно {{ categories.length }} категорій для вибору
-              </p>
-            </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Публікація
+            </label>
+            <div class="space-y-3">
+              <UCheckbox
+                  v-model="state.is_published"
+                  label="Опублікувати зараз"
+                  @change="handlePublishChange"
+              />
 
-            <div>
-              <label class="flex items-center space-x-2">
-                <input
-                    v-model="formData.is_published"
-                    type="checkbox"
-                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    @change="handlePublishChange"
-                />
-                <span class="text-sm font-medium text-gray-700">Опублікувати зараз</span>
-              </label>
-              <div v-if="formData.is_published" class="mt-2">
-                <input
-                    v-model="formattedPublishedAt"
+              <div v-if="state.is_published">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                  Дата публікації
+                </label>
+                <UInput
+                    v-model="publishedAtFormatted"
                     type="datetime-local"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>
           </div>
+        </div>
 
-          <div>
-            <label for="excerpt" class="block text-sm font-medium text-gray-700 mb-2">
-              Короткий опис
-            </label>
-            <textarea
-                id="excerpt"
-                v-model="formData.excerpt"
-                rows="3"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Короткий опис посту для превью"
-            ></textarea>
-            <p v-if="errors.excerpt" class="mt-1 text-sm text-red-600">{{ errors.excerpt }}</p>
-          </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Короткий опис
+          </label>
+          <UTextarea
+              v-model="state.excerpt"
+              placeholder="Короткий опис посту для превью"
+              :rows="3"
+          />
+        </div>
 
-          <div>
-            <label for="content_raw" class="block text-sm font-medium text-gray-700 mb-2">
-              Контент *
-            </label>
-            <textarea
-                id="content_raw"
-                v-model="formData.content_raw"
-                rows="12"
-                required
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Напишіть контент посту тут..."
-            ></textarea>
-            <p v-if="errors.content_raw" class="mt-1 text-sm text-red-600">{{ errors.content_raw }}</p>
-          </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Контент *
+          </label>
+          <UTextarea
+              v-model="state.content_raw"
+              placeholder="Напишіть контент посту тут..."
+              :rows="12"
+              required
+          />
+        </div>
 
-          <div class="flex justify-end space-x-4">
-            <NuxtLink
-                to="/blogpostui"
-                class="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
-            >
-              Скасувати
-            </NuxtLink>
-            <button
-                type="submit"
-                :disabled="submitting"
-                class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {{ submitting ? 'Створення...' : 'Створити пост' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </main>
+        <div class="flex justify-end gap-3 pt-4">
+          <UButton
+              to="/blogpostui"
+              variant="ghost"
+              type="button"
+          >
+            Скасувати
+          </UButton>
+          <UButton
+              type="submit"
+              :loading="submitting"
+          >
+            Створити пост
+          </UButton>
+        </div>
+      </form>
+    </UCard>
   </div>
 </template>
 
 <script setup lang="ts">
 import { reactive, ref, onMounted, computed } from 'vue'
-import { postSchema, type PostFormData } from '~/schemas'
-import type { BlogCategory } from '~/types'
+import { z } from "zod"
+
+const postSchema = z.object({
+  title: z.string().min(1, "Заголовок обов'язковий").max(255, "Заголовок занадто довгий"),
+  slug: z.string().min(1, "Slug обов'язковий").max(255, "Slug занадто довгий"),
+  category_id: z.string().optional(), // Додано .optional()
+  excerpt: z.string().max(500, "Короткий опис занадто довгий").optional().or(z.literal("")),
+  content_raw: z.string().min(1, "Контент обов'язковий"),
+  is_published: z.boolean(),
+  published_at: z.string().optional().or(z.literal("")),
+})
+
+type PostFormData = z.infer<typeof postSchema>
+
+interface BlogCategory {
+  id: number
+  title: string
+  slug: string
+}
 
 const router = useRouter()
 
-const formData = reactive<PostFormData>({
+const state = reactive<PostFormData>({
   title: '',
   slug: '',
-  category_id: 0,
+  category_id: '', // Змінено на порожній рядок
   excerpt: '',
   content_raw: '',
   is_published: false,
@@ -174,116 +167,88 @@ const formData = reactive<PostFormData>({
 const categories = ref<BlogCategory[]>([])
 const submitting = ref(false)
 const loadingCategories = ref(false)
-const errors = ref<Record<string, string>>({})
 
-// Computed для форматування дати для datetime-local поля
-const formattedPublishedAt = computed({
+const categoryOptions = computed(() =>
+    categories.value.map(cat => ({
+      label: cat.title,
+      value: cat.id
+    }))
+)
+
+const publishedAtFormatted = computed({
   get() {
-    if (!formData.published_at) return ''
-
+    if (!state.published_at) return ''
     try {
-      const date = new Date(formData.published_at)
-      if (isNaN(date.getTime())) return ''
-
-      const year = date.getFullYear()
-      const month = String(date.getMonth() + 1).padStart(2, '0')
-      const day = String(date.getDate()).padStart(2, '0')
-      const hours = String(date.getHours()).padStart(2, '0')
-      const minutes = String(date.getMinutes()).padStart(2, '0')
-
-      return `${year}-${month}-${day}T${hours}:${minutes}`
+      const date = new Date(state.published_at)
+      return date.toISOString().slice(0, 16)
     } catch {
       return ''
     }
   },
   set(value: string) {
     if (value) {
-      const date = new Date(value)
-      formData.published_at = date.toISOString()
+      state.published_at = new Date(value).toISOString()
     } else {
-      formData.published_at = ''
+      state.published_at = ''
     }
   }
 })
 
 const generateSlug = () => {
-  if (formData.title && !formData.slug) {
-    formData.slug = formData.title
+  if (state.title && !state.slug) {
+    state.slug = state.title
         .toLowerCase()
         .replace(/[^a-z0-9\s-]/g, '')
         .replace(/\s+/g, '-')
         .replace(/-+/g, '-')
-        .trim('-')
+        .trim()
   }
 }
 
 const handlePublishChange = () => {
-  if (formData.is_published && !formData.published_at) {
-    formData.published_at = new Date().toISOString()
-  }
-}
-
-const validateForm = () => {
-  try {
-    postSchema.parse(formData)
-    errors.value = {}
-    return true
-  } catch (error: any) {
-    errors.value = {}
-    if (error.errors) {
-      error.errors.forEach((err: any) => {
-        errors.value[err.path[0]] = err.message
-      })
-    }
-    return false
-  }
-}
-
-const handleSubmit = async () => {
-  if (!validateForm()) return
-
-  submitting.value = true
-
-  try {
-    const response = await $fetch('http://localhost/api/blog/posts', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: formData
-    })
-
-    alert('Пост успішно створено!')
-    router.push(`/blogpostui/${response.slug}`)
-  } catch (error: any) {
-    console.error('Помилка створення посту:', error)
-    alert(`Помилка створення посту: ${error.message}`)
-  } finally {
-    submitting.value = false
+  if (state.is_published && !state.published_at) {
+    state.published_at = new Date().toISOString()
   }
 }
 
 const loadCategories = async () => {
   loadingCategories.value = true
   try {
-    console.log('Завантаження категорій для постів...')
-
-    const response = await $fetch<BlogCategory[]>('http://localhost/api/blog/categories-all', {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      }
-    })
-
-    console.log('Категорії завантажено:', response)
+    console.log('Завантажуємо категорії...')
+    const response = await $fetch<BlogCategory[]>('http://localhost/api/blog/categories-all')
+    console.log('Отримані категорії:', response)
     categories.value = response
   } catch (error) {
     console.error('Помилка завантаження категорій:', error)
-    alert('Помилка завантаження категорій')
   } finally {
     loadingCategories.value = false
+  }
+}
+
+const onSubmit = async () => {
+  // Перевірка обов'язкових полів
+  if (!state.title || !state.slug || !state.category_id || !state.content_raw) {
+    console.error('Заповніть всі обов\'язкові поля')
+    return
+  }
+
+  submitting.value = true
+  try {
+    const submitData = {
+      ...state,
+      category_id: Number(state.category_id) // Перетворюємо в число
+    }
+
+    const response = await $fetch('http://localhost/api/blog/posts', {
+      method: 'POST',
+      body: submitData
+    })
+
+    await router.push(`/blogpostui/${response.slug}`)
+  } catch (error) {
+    console.error('Помилка створення посту:', error)
+  } finally {
+    submitting.value = false
   }
 }
 
@@ -292,9 +257,6 @@ onMounted(() => {
 })
 
 useHead({
-  title: 'Створити новий пост',
-  meta: [
-    { name: 'description', content: 'Створення нового посту блогу' }
-  ]
+  title: 'Створити новий пост'
 })
 </script>
